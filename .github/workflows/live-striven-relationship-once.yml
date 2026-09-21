@@ -1,0 +1,50 @@
+name: Live Striven Relationship Verification Once
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/live-striven-relationship-once.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  live-relationship:
+    runs-on: ubuntu-latest
+    env:
+      STRIVEN_CLIENT_ID: ${{ secrets.CLIENT_ID }}
+      STRIVEN_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+      STRIVEN_PROBE_CUSTOMER_ID: ${{ secrets.PROBE_CUSTOMER_ID }}
+      STRIVEN_BASE_URL: https://api.striven.com
+      STAGE0_PAGE_SIZE: "50"
+
+    steps:
+      - name: Checkout Stage 0 branch
+        uses: actions/checkout@v4
+        with:
+          ref: stage-0-tenant-discovery
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verify required secrets are available
+        shell: bash
+        run: |
+          if [ -z "$STRIVEN_CLIENT_ID" ] || [ -z "$STRIVEN_CLIENT_SECRET" ] || [ -z "$STRIVEN_PROBE_CUSTOMER_ID" ]; then
+            echo "Required Striven verification secrets were not resolved."
+            exit 1
+          fi
+          echo "Required verification secrets resolved: YES"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Static correctness gates
+        run: npm run verify:static
+
+      - name: Run read-only relationship verification
+        run: npm run live:relationship
