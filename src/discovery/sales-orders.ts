@@ -37,6 +37,28 @@ function scalarId(value: unknown): number | undefined {
   return undefined;
 }
 
+function nonNegativeInteger(value: unknown): number | undefined {
+  if (typeof value === "number" && Number.isInteger(value) && value >= 0) return value;
+  if (typeof value === "string" && /^\d+$/.test(value)) {
+    const parsed = Number.parseInt(value, 10);
+    return parsed >= 0 ? parsed : undefined;
+  }
+  return undefined;
+}
+
+function totalCount(payload: unknown): number | undefined {
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return undefined;
+  const object = payload as Record<string, unknown>;
+  return nonNegativeInteger(
+    object.TotalCount ??
+      object.totalCount ??
+      object.Total ??
+      object.total ??
+      object.Count ??
+      object.count,
+  );
+}
+
 function nestedId(value: unknown): number | undefined {
   if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
   const object = value as Record<string, unknown>;
@@ -45,6 +67,50 @@ function nestedId(value: unknown): number | undefined {
 
 function rowId(row: Record<string, unknown>): number | undefined {
   return scalarId(row.Id ?? row.ID ?? row.id);
+}
+
+interface PagedSearchResult {
+  firstPayload: unknown;
+  allRows: Array<Record<string, unknown>>;
+}
+
+async function searchAll(
+  client: SearchClient,
+  path: string,
+  baseBody: Record<string, unknown>,
+  pageSize: number,
+  maxPages = 20,
+): Promise<PagedSearchResult> {
+  if (!Number.isInteger(pageSize) || pageSize <= 0) {
+    throw new Error("pageSize must be a positive integer");
+  }
+
+  let firstPayload: unknown = null;
+  const allRows: Array<Record<string, unknown>> = [];
+
+  for (let pageIndex = 0; pageIndex < maxPages; pageIndex += 1) {
+    const payload = await client.search<unknown>(path, {
+      ...baseBody,
+      PageIndex: pageIndex,
+      PageSize: pageSize,
+    });
+
+    if (pageIndex === 0) firstPayload = payload;
+
+    const pageRows = rows(payload);
+    allRows.push(...pageRows);
+
+    const expectedTotal = totalCount(payload);
+    if (expectedTotal !== undefined && allRows.length >= expectedTotal) {
+      return { firstPayload, allRows };
+    }
+
+    if (pageRows.length === 0 || pageRows.length < pageSize) {
+      return { firstPayload, allRows };
+    }
+  }
+
+  throw new Error(`Pagination safety cap reached for ${path}`);
 }
 
 export interface SalesOrderRelationshipShape {
@@ -65,24 +131,30 @@ export async function probeSalesOrderRelationship(
   customerId: number,
   pageSize: number,
 ): Promise<SalesOrderRelationshipShape> {
-  const salesOrdersPayload = await client.search<unknown>("/v1/sales-orders/search", {
-    CustomerId: customerId,
-    PageIndex: 0,
-    PageSize: pageSize,
-    SortExpression: "Id",
-    SortOrder: 2,
-  });
+  const salesOrders = await searchAll(
+    client,
+    "/v1/sales-orders/search",
+    {
+      CustomerId: customerId,
+      SortExpression: "Id",
+      SortOrder: 2,
+    },
+    pageSize,
+  );
 
-  const tasksPayload = await client.search<unknown>("/v1/Tasks/Search", {
-    AccountID: customerId,
-    PageIndex: 0,
-    PageSize: pageSize,
-    SortExpression: "TaskName",
-    SortOrder: 2,
-  });
+  const tasks = await searchAll(
+    client,
+    "/v1/Tasks/Search",
+    {
+      AccountID: customerId,
+      SortExpression: "TaskName",
+      SortOrder: 2,
+    },
+    pageSize,
+  );
 
-  const salesOrderRows = rows(salesOrdersPayload);
-  const taskRows = rows(tasksPayload);
+  const salesOrderRows = salesOrders.allRows;
+  const taskRows = tasks.allRows;
 
   const salesOrderIds = new Set(
     salesOrderRows
@@ -114,8 +186,8 @@ export async function probeSalesOrderRelationship(
   const matching = taskOrderIds.filter((id) => salesOrderIds.has(id)).length;
 
   return {
-    salesOrders: summarizePayloadShape(salesOrdersPayload),
-    tasks: summarizePayloadShape(tasksPayload),
+    salesOrders: summarizePayloadShape(salesOrders.firstPayload),
+    tasks: summarizePayloadShape(tasks.firstPayload),
     evidence: {
       salesOrdersReturned: salesOrderRows.length,
       salesOrderRowsWithExpectedCustomer,
