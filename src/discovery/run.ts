@@ -9,6 +9,7 @@ import { probeCustomerGraph, type CustomerGraphShape } from "./customer-graph.js
 import type { DiscoveryProbeResult, Stage0Manifest } from "./manifest.js";
 import { DOCUMENTED_STATIC_LISTS } from "./static-lists.js";
 import { probeTaskSearch, type PayloadShape } from "./task-search.js";
+import { validateStage0Manifest } from "./validate-manifest.js";
 
 async function main(): Promise<void> {
   const config = loadConfig();
@@ -108,6 +109,13 @@ async function main(): Promise<void> {
       blockers,
     },
   };
+
+  const validation = validateStage0Manifest(manifest);
+  if (!validation.valid) {
+    throw new Error(
+      `Stage 0 manifest invariant failure:\n- ${validation.issues.join("\n- ")}`,
+    );
+  }
 
   const directory = resolve("tenant-manifest");
   const output = resolve(directory, "discovery-latest.json");
