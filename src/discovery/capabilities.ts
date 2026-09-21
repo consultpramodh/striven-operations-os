@@ -26,6 +26,7 @@ export const PHASE1_CAPABILITIES: readonly ApiCapability[] = [
     stage0Allowed: true,
     status: "verified-official-docs",
     evidence: SWAGGER,
+    liveVerifiedAt: "2026-09-21",
   },
   {
     entity: "Customers",
@@ -62,6 +63,7 @@ export const PHASE1_CAPABILITIES: readonly ApiCapability[] = [
     stage0Allowed: true,
     status: "verified-official-docs",
     evidence: SWAGGER,
+    liveVerifiedAt: "2026-09-21",
   },
   {
     entity: "Customers",
@@ -81,6 +83,7 @@ export const PHASE1_CAPABILITIES: readonly ApiCapability[] = [
     stage0Allowed: true,
     status: "verified-official-docs",
     evidence: SWAGGER,
+    liveVerifiedAt: "2026-09-21",
   },
   {
     entity: "Contacts",
@@ -108,6 +111,7 @@ export const PHASE1_CAPABILITIES: readonly ApiCapability[] = [
     stage0Allowed: true,
     status: "verified-official-docs",
     evidence: SWAGGER,
+    liveVerifiedAt: "2026-09-21",
   },
   {
     entity: "Sales Orders",
@@ -136,6 +140,7 @@ export const PHASE1_CAPABILITIES: readonly ApiCapability[] = [
     stage0Allowed: true,
     status: "verified-official-docs",
     evidence: SWAGGER,
+    liveVerifiedAt: "2026-09-21",
   },
   {
     entity: "Tasks",
@@ -145,6 +150,7 @@ export const PHASE1_CAPABILITIES: readonly ApiCapability[] = [
     stage0Allowed: true,
     status: "verified-official-docs",
     evidence: SWAGGER,
+    liveVerifiedAt: "2026-09-21",
   },
   {
     entity: "Tasks",
