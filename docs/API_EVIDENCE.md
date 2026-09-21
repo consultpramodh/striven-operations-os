@@ -115,3 +115,27 @@ The relationship probe stores counts and boolean/structural evidence, not custom
 4. `verified-official-docs`
 
 Documentation and live proof are orthogonal evidence. Production authorization requires the appropriate combination of contract evidence, current-tenant evidence, tests, and write-safety approval.
+
+
+## Current live tenant verification — 2026-09-21
+
+GitHub Actions run:
+`35652778200`
+
+Result:
+- authentication: PASS
+- static correctness gates: PASS
+- live metadata verification: PASS
+- API calls: read-only GETs only
+- writes enabled: false
+
+The following exact operations were observed successfully against the connected live tenant:
+
+- `GET /v1/customers/0/custom-fields`
+- `GET /v1/sales-orders/0/custom-fields`
+- `GET /v1/customer-assets/0/custom-fields`
+- `GET /v1/items/0/custom-fields`
+- `GET /v1/customer-assets/types`
+- `GET /v1/employees`
+
+This proves endpoint availability and permission for these specific operations in the current tenant. It does not yet prove Customer → Sales Order → Task record relationships or any write behavior.
