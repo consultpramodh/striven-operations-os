@@ -12,6 +12,7 @@ export interface ApiCapability {
   stage0Allowed: boolean;
   status: CapabilityStatus;
   evidence: string;
+  liveVerifiedAt?: string;
 }
 
 const SWAGGER = "https://api.striven.com/swagger/v1/swagger.json";
@@ -70,6 +71,7 @@ export const PHASE1_CAPABILITIES: readonly ApiCapability[] = [
     stage0Allowed: true,
     status: "verified-official-docs",
     evidence: SWAGGER,
+    liveVerifiedAt: "2026-09-21",
   },
   {
     entity: "Contacts",
@@ -124,6 +126,7 @@ export const PHASE1_CAPABILITIES: readonly ApiCapability[] = [
     stage0Allowed: true,
     status: "verified-official-docs",
     evidence: SWAGGER,
+    liveVerifiedAt: "2026-09-21",
   },
   {
     entity: "Tasks",
@@ -160,6 +163,7 @@ export const PHASE1_CAPABILITIES: readonly ApiCapability[] = [
     stage0Allowed: true,
     status: "verified-official-docs",
     evidence: SWAGGER,
+    liveVerifiedAt: "2026-09-21",
   },
   {
     entity: "Customer Assets",
@@ -169,6 +173,7 @@ export const PHASE1_CAPABILITIES: readonly ApiCapability[] = [
     stage0Allowed: true,
     status: "verified-official-docs",
     evidence: SWAGGER,
+    liveVerifiedAt: "2026-09-21",
   },
   {
     entity: "Customer Assets",
@@ -187,6 +192,7 @@ export const PHASE1_CAPABILITIES: readonly ApiCapability[] = [
     stage0Allowed: true,
     status: "verified-official-docs",
     evidence: SWAGGER,
+    liveVerifiedAt: "2026-09-21",
   },
   {
     entity: "Employees",
@@ -232,5 +238,6 @@ export const PHASE1_CAPABILITIES: readonly ApiCapability[] = [
     stage0Allowed: true,
     status: "verified-official-docs",
     evidence: SWAGGER,
+    liveVerifiedAt: "2026-09-21",
   },
 ];
