@@ -12,7 +12,8 @@
     "discovery": "node --env-file=.env.local --import tsx src/discovery/run.ts",
     "validate:skills": "node scripts/validate-skills.mjs",
     "verify:static": "npm run validate:skills && npm run typecheck && npm test",
-    "verify:stage0": "npm run verify:static && npm run discovery"
+    "verify:stage0": "npm run verify:static && npm run discovery",
+    "live:metadata": "node --import tsx src/discovery/live-metadata.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
