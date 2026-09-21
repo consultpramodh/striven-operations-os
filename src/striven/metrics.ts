@@ -5,7 +5,7 @@ export interface ApiRequestMetric {
   status: number;
   durationMs: number;
   attempt: number;
-  retryAfterSeconds?: number;
+  retryAfterSeconds: number | undefined;
 }
 
 export class ApiMeter {
