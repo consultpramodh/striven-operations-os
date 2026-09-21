@@ -141,6 +141,7 @@ export interface SalesOrderRelationshipShape {
     tasksReturned: number;
     taskDetailsInspected: number;
     taskDetailsTruncated: boolean;
+    stoppedAfterExactMatch: boolean;
     tasksWithSalesOrderReference: number;
     taskSalesOrderReferencesFoundInCustomerOrders: number;
     taskSalesOrderReferencesOutsideCustomerOrders: number;
@@ -151,7 +152,7 @@ export async function probeSalesOrderRelationship(
   client: RelationshipClient,
   customerId: number,
   pageSize: number,
-  maxTaskDetails = 25,
+  maxTaskDetails = 50,
 ): Promise<SalesOrderRelationshipShape> {
   if (!Number.isInteger(maxTaskDetails) || maxTaskDetails <= 0) {
     throw new Error("maxTaskDetails must be a positive integer");
@@ -203,15 +204,23 @@ export async function probeSalesOrderRelationship(
     .filter((id): id is number => id !== undefined);
 
   const detailOrderIds: number[] = [];
-  const detailTaskIds = taskIds.slice(0, maxTaskDetails);
+  let taskDetailsInspected = 0;
+  let stoppedAfterExactMatch = false;
 
-  for (const taskId of detailTaskIds) {
+  for (const taskId of taskIds.slice(0, maxTaskDetails)) {
+    taskDetailsInspected += 1;
+
     const detail = await client.get<unknown>(`/v1/Tasks/${taskId}`);
     if (!detail || typeof detail !== "object" || Array.isArray(detail)) continue;
 
     const orderId = orderIdFromRecord(detail as Record<string, unknown>);
-    if (orderId !== undefined) {
-      detailOrderIds.push(orderId);
+    if (orderId === undefined) continue;
+
+    detailOrderIds.push(orderId);
+
+    if (salesOrderIds.has(orderId)) {
+      stoppedAfterExactMatch = true;
+      break;
     }
   }
 
@@ -225,8 +234,10 @@ export async function probeSalesOrderRelationship(
       salesOrdersReturned: salesOrderRows.length,
       salesOrderRowsWithExpectedCustomer,
       tasksReturned: taskRows.length,
-      taskDetailsInspected: detailTaskIds.length,
-      taskDetailsTruncated: taskIds.length > maxTaskDetails,
+      taskDetailsInspected,
+      taskDetailsTruncated:
+        !stoppedAfterExactMatch && taskIds.length > maxTaskDetails,
+      stoppedAfterExactMatch,
       tasksWithSalesOrderReference: taskOrderIds.length,
       taskSalesOrderReferencesFoundInCustomerOrders: matching,
       taskSalesOrderReferencesOutsideCustomerOrders: taskOrderIds.length - matching,
