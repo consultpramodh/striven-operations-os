@@ -68,13 +68,15 @@ async function main(): Promise<void> {
       evidence.taskSalesOrderReferencesFoundInCustomerOrders > 0;
     const noTaskOrderReferencesOutsideCustomer =
       evidence.taskSalesOrderReferencesOutsideCustomerOrders === 0;
+    const allTaskDetailsInspected = !evidence.taskDetailsTruncated;
 
     const conclusive =
       salesOrdersFound &&
       taskOrderReferencesPresent &&
       matchingTaskOrderReferencePresent &&
       allReturnedSalesOrdersBelongToCustomer &&
-      noTaskOrderReferencesOutsideCustomer;
+      noTaskOrderReferencesOutsideCustomer &&
+      allTaskDetailsInspected;
 
     console.log(
       JSON.stringify({
@@ -85,6 +87,7 @@ async function main(): Promise<void> {
         taskOrderReferencesPresent,
         matchingTaskOrderReferencePresent,
         noTaskOrderReferencesOutsideCustomer,
+        allTaskDetailsInspected,
       }),
     );
 
