@@ -1,8 +1,8 @@
 name: Live Striven Metadata Verification
 
 on:
-  # One controlled automatic run when this workflow is first introduced.
-  # After verification, keep this workflow manual-only.
+  # Controlled automatic run when this workflow file changes.
+  # After live verification is complete, keep this workflow manual-only.
   push:
     branches:
       - stage-0-tenant-discovery
@@ -16,10 +16,9 @@ permissions:
 jobs:
   live-metadata:
     runs-on: ubuntu-latest
-    environment: striven-readonly
     env:
-      STRIVEN_CLIENT_ID: ${{ secrets.STRIVEN_CLIENT_ID || secrets.CLIENT_ID }}
-      STRIVEN_CLIENT_SECRET: ${{ secrets.STRIVEN_CLIENT_SECRET || secrets.CLIENT_SECRET }}
+      STRIVEN_CLIENT_ID: ${{ secrets.STRIVEN_CLIENT_ID || secrets.CLIENT_ID || secrets.STRIVEN_CLIENTID || secrets.CLIENTID || secrets.striven_client_id || secrets.client_id }}
+      STRIVEN_CLIENT_SECRET: ${{ secrets.STRIVEN_CLIENT_SECRET || secrets.CLIENT_SECRET || secrets.STRIVEN_CLIENTSECRET || secrets.CLIENTSECRET || secrets.striven_client_secret || secrets.client_secret }}
       STRIVEN_BASE_URL: https://api.striven.com
       STAGE0_PAGE_SIZE: "1"
 
@@ -37,6 +36,7 @@ jobs:
         run: |
           if [ -z "$STRIVEN_CLIENT_ID" ] || [ -z "$STRIVEN_CLIENT_SECRET" ]; then
             echo "Required Striven repository secrets were not resolved."
+            echo "Accepted names include STRIVEN_CLIENT_ID / STRIVEN_CLIENT_SECRET or CLIENT_ID / CLIENT_SECRET."
             exit 1
           fi
 
