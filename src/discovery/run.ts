@@ -5,7 +5,9 @@ import { StrivenTokenManager } from "../striven/auth.js";
 import { StrivenReadOnlyClient } from "../striven/client.js";
 import { ApiMeter } from "../striven/metrics.js";
 import { PHASE1_CAPABILITIES } from "./capabilities.js";
+import { probeCustomerGraph, type CustomerGraphShape } from "./customer-graph.js";
 import type { DiscoveryProbeResult, Stage0Manifest } from "./manifest.js";
+import { DOCUMENTED_STATIC_LISTS } from "./static-lists.js";
 import { probeTaskSearch, type PayloadShape } from "./task-search.js";
 
 async function main(): Promise<void> {
@@ -30,23 +32,45 @@ async function main(): Promise<void> {
   }
 
   const taskSearch: DiscoveryProbeResult<PayloadShape> = { state: "skipped" };
+  const customerGraph: DiscoveryProbeResult<CustomerGraphShape> = { state: "skipped" };
 
   if (authentication.state === "pass") {
-    if (config.accountId === undefined) {
-      taskSearch.detail = "STRIVEN_ACCOUNT_ID is not configured.";
-      blockers.push("Task Search probe was not run because STRIVEN_ACCOUNT_ID is missing.");
+    if (config.probeCustomerId === undefined) {
+      taskSearch.detail = "STRIVEN_PROBE_CUSTOMER_ID is not configured.";
+      customerGraph.detail = "STRIVEN_PROBE_CUSTOMER_ID is not configured.";
+      blockers.push(
+        "Customer/Task relationship probes were not run because STRIVEN_PROBE_CUSTOMER_ID is missing.",
+      );
     } else {
       try {
-        taskSearch.data = await probeTaskSearch(client, config.accountId, config.stage0PageSize);
+        taskSearch.data = await probeTaskSearch(
+          client,
+          config.probeCustomerId,
+          config.stage0PageSize,
+        );
         taskSearch.state = "pass";
       } catch (error) {
         taskSearch.state = "fail";
         taskSearch.detail = error instanceof Error ? error.message : String(error);
         blockers.push("Verified Task Search probe failed.");
       }
+
+      try {
+        customerGraph.data = await probeCustomerGraph(
+          client,
+          config.probeCustomerId,
+          config.stage0PageSize,
+        );
+        customerGraph.state = "pass";
+      } catch (error) {
+        customerGraph.state = "fail";
+        customerGraph.detail = error instanceof Error ? error.message : String(error);
+        blockers.push("Read-only Customer → Contact/Assignments/Tasks graph probe failed.");
+      }
     }
   } else {
     taskSearch.detail = "Skipped because authentication did not pass.";
+    customerGraph.detail = "Skipped because authentication did not pass.";
   }
 
   const pendingCapabilities = PHASE1_CAPABILITIES.filter(
@@ -59,20 +83,24 @@ async function main(): Promise<void> {
   }
 
   blockers.push("Custom-field metadata discovery provider has not yet been verified against the live tenant.");
-  blockers.push("Customer → Sales Order → Task relationship resolution has not yet been verified.");
+  blockers.push("Sales Order relationship resolution has not yet been verified in the new discovery engine.");
 
   const manifest: Stage0Manifest = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     generatedAt: new Date().toISOString(),
     mode: "discovery",
-    tenant: {
+    connection: {
       baseUrl: config.strivenBaseUrl,
-      accountId: config.accountId ?? null,
+    },
+    probeContext: {
+      customerIdConfigured: config.probeCustomerId !== undefined,
     },
     capabilities: PHASE1_CAPABILITIES,
+    documentedStaticLists: DOCUMENTED_STATIC_LISTS,
     probes: {
       authentication,
       taskSearch,
+      customerGraph,
     },
     apiUsage: meter.summary(),
     readiness: {
@@ -89,8 +117,9 @@ async function main(): Promise<void> {
   console.log("Stage 0 discovery complete");
   console.log(`Authentication: ${authentication.state.toUpperCase()}`);
   console.log(`Task Search: ${taskSearch.state.toUpperCase()}`);
+  console.log(`Customer Graph: ${customerGraph.state.toUpperCase()}`);
   console.log(`API calls: ${manifest.apiUsage.totalCalls}`);
-  console.log(`Controlled writes enabled: NO`);
+  console.log("Controlled writes enabled: NO");
   console.log(`Blockers: ${blockers.length}`);
   console.log(`Manifest: ${output}`);
 }
