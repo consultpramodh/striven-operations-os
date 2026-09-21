@@ -10,7 +10,7 @@ test("discovers every Task Type custom-field definition endpoint", async () => {
 
       if (path === "/v1/Tasks/types") {
         return {
-          data: [{ id: 10 }, { id: 20 }],
+          data: [{ taskTypeId: 0 }, { id: 10 }, { id: 20 }],
         } as T;
       }
 
@@ -29,6 +29,7 @@ test("discovers every Task Type custom-field definition endpoint", async () => {
   const result = await discoverTaskTypeSchemas(client);
 
   assert.equal(result.taskTypesDiscovered, 2);
+  assert.equal(result.zeroIdSentinelPresent, true);
   assert.equal(result.taskTypesInspected, 2);
   assert.equal(result.allTaskTypesInspected, true);
   assert.equal(result.taskTypesWithCustomFields, 1);
@@ -44,7 +45,7 @@ test("fails closed when Task Type discovery exceeds the configured inspection ca
   const client = {
     async get<T>(path: string): Promise<T> {
       if (path === "/v1/Tasks/types") {
-        return [{ id: 1 }, { id: 2 }, { id: 3 }] as T;
+        return [{ taskTypeId: 0 }, { id: 1 }, { id: 2 }, { id: 3 }] as T;
       }
 
       return [] as T;
@@ -53,6 +54,7 @@ test("fails closed when Task Type discovery exceeds the configured inspection ca
 
   const result = await discoverTaskTypeSchemas(client, 2);
   assert.equal(result.taskTypesDiscovered, 3);
+  assert.equal(result.zeroIdSentinelPresent, true);
   assert.equal(result.taskTypesInspected, 2);
   assert.equal(result.allTaskTypesInspected, false);
 });
