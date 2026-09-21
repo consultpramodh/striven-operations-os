@@ -8,7 +8,8 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "discovery": "node --env-file=.env.local --import tsx src/discovery/run.ts"
+    "discovery": "node --env-file=.env.local --import tsx src/discovery/run.ts",
+    "validate:skills": "node scripts/validate-skills.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
