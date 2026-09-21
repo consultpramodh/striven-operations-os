@@ -8,8 +8,11 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/*.test.ts",
     "discovery": "node --env-file=.env.local --import tsx src/discovery/run.ts",
-    "validate:skills": "node scripts/validate-skills.mjs"
+    "validate:skills": "node scripts/validate-skills.mjs",
+    "verify:static": "npm run validate:skills && npm run typecheck && npm test",
+    "verify:stage0": "npm run verify:static && npm run discovery"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
