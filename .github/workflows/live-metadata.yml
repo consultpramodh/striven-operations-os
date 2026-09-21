@@ -1,13 +1,6 @@
 name: Live Striven Metadata Verification
 
 on:
-  # Controlled automatic run when this workflow file changes.
-  # After live verification is complete, keep this workflow manual-only.
-  push:
-    branches:
-      - stage-0-tenant-discovery
-    paths:
-      - ".github/workflows/live-metadata.yml"
   workflow_dispatch:
 
 permissions:
@@ -17,8 +10,8 @@ jobs:
   live-metadata:
     runs-on: ubuntu-latest
     env:
-      STRIVEN_CLIENT_ID: ${{ secrets.STRIVEN_CLIENT_ID || secrets.CLIENT_ID || secrets.STRIVEN_CLIENTID || secrets.CLIENTID || secrets.striven_client_id || secrets.client_id }}
-      STRIVEN_CLIENT_SECRET: ${{ secrets.STRIVEN_CLIENT_SECRET || secrets.CLIENT_SECRET || secrets.STRIVEN_CLIENTSECRET || secrets.CLIENTSECRET || secrets.striven_client_secret || secrets.client_secret }}
+      STRIVEN_CLIENT_ID: ${{ secrets.STRIVEN_CLIENT_ID || secrets.CLIENT_ID || secrets.STRIVEN_CLIENTID || secrets.CLIENTID || vars.STRIVEN_CLIENT_ID || vars.CLIENT_ID }}
+      STRIVEN_CLIENT_SECRET: ${{ secrets.STRIVEN_CLIENT_SECRET || secrets.CLIENT_SECRET || secrets.STRIVEN_CLIENTSECRET || secrets.CLIENTSECRET }}
       STRIVEN_BASE_URL: https://api.striven.com
       STAGE0_PAGE_SIZE: "1"
 
@@ -34,9 +27,18 @@ jobs:
       - name: Fail closed if credentials are unavailable
         shell: bash
         run: |
-          if [ -z "$STRIVEN_CLIENT_ID" ] || [ -z "$STRIVEN_CLIENT_SECRET" ]; then
-            echo "Required Striven repository secrets were not resolved."
-            echo "Accepted names include STRIVEN_CLIENT_ID / STRIVEN_CLIENT_SECRET or CLIENT_ID / CLIENT_SECRET."
+          missing=0
+          if [ -z "$STRIVEN_CLIENT_ID" ]; then
+            echo "Striven Client ID was not resolved."
+            missing=1
+          fi
+          if [ -z "$STRIVEN_CLIENT_SECRET" ]; then
+            echo "Striven Client Secret was not resolved from GitHub Actions Secrets."
+            missing=1
+          fi
+          if [ "$missing" -ne 0 ]; then
+            echo "Use repository Actions secret STRIVEN_CLIENT_SECRET (or CLIENT_SECRET)."
+            echo "Client ID may be an Actions secret or variable."
             exit 1
           fi
 
