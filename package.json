@@ -13,7 +13,8 @@
     "validate:skills": "node scripts/validate-skills.mjs",
     "verify:static": "npm run validate:skills && npm run typecheck && npm test",
     "verify:stage0": "npm run verify:static && npm run discovery",
-    "live:metadata": "node --import tsx src/discovery/live-metadata.ts"
+    "live:metadata": "node --import tsx src/discovery/live-metadata.ts",
+    "live:relationship": "node --import tsx src/discovery/live-relationship.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
