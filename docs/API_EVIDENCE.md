@@ -157,3 +157,18 @@ Relevant schema evidence:
 - `TaskDetail` includes `SalesOrder`.
 
 Therefore a missing Sales Order reference in Task Search is not treated as a broken relationship. Stage 0D resolves searched Task IDs through the documented Task-detail endpoint before evaluating Customer → Sales Order → Task.
+
+
+## Relationship search constraints — 2026-09-21
+
+A second public OpenAPI inspection confirmed:
+
+- Task Search supports customer/account, assignee, project, status, type, title and date-oriented filters.
+- Task Search does **not** expose an Order/Sales Order filter.
+- Sales Order schemas do not expose a Task collection.
+- Task Search result rows do not expose Sales Order linkage.
+- Task Detail remains the authoritative read surface for Task → Sales Order.
+
+Stage 0D therefore proves **relationship existence** by finding at least one exact Task Detail Sales Order ID that belongs to the selected customer's Sales Order set. This is distinct from an exhaustive audit of every Task for that customer.
+
+The verifier stops after an exact relationship is proven to conserve API budget. If no exact match is found before the bounded Task-detail cap, the result remains `INCONCLUSIVE`.
