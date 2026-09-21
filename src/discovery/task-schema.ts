@@ -27,12 +27,23 @@ function rows(payload: unknown): Array<Record<string, unknown>> {
 }
 
 function rowId(row: Record<string, unknown>): number | undefined {
-  const value = row.Id ?? row.ID ?? row.id ?? row.TaskTypeId ?? row.taskTypeId;
-  if (typeof value === "number" && Number.isInteger(value) && value > 0) return value;
-  if (typeof value === "string" && /^\d+$/.test(value)) {
-    const parsed = Number.parseInt(value, 10);
-    return parsed > 0 ? parsed : undefined;
+  const value =
+    row.Id ??
+    row.ID ??
+    row.id ??
+    row.TaskTypeId ??
+    row.TaskTypeID ??
+    row.taskTypeId ??
+    row.taskTypeID;
+
+  if (typeof value === "number" && Number.isInteger(value) && value >= 0) {
+    return value;
   }
+
+  if (typeof value === "string" && /^\d+$/.test(value)) {
+    return Number.parseInt(value, 10);
+  }
+
   return undefined;
 }
 
@@ -42,6 +53,7 @@ export interface TaskTypeSchemaSummary {
   taskTypesInspected: number;
   allTaskTypesInspected: boolean;
   taskTypesWithCustomFields: number;
+  zeroIdSentinelPresent: boolean;
   customFieldDefinitionKeys: string[];
 }
 
@@ -55,13 +67,16 @@ export async function discoverTaskTypeSchemas(
 
   const payload = await client.get<unknown>("/v1/Tasks/types");
   const typeRows = rows(payload);
-  const typeIds = typeRows
-    .map(rowId)
-    .filter((id): id is number => id !== undefined);
+  const parsedIds = typeRows.map(rowId);
 
-  if (typeRows.length > 0 && typeIds.length !== typeRows.length) {
+  if (typeRows.length > 0 && parsedIds.some((id) => id === undefined)) {
     throw new Error("One or more Task Types did not expose a stable numeric ID");
   }
+
+  const zeroIdSentinelPresent = parsedIds.some((id) => id === 0);
+  const typeIds = parsedIds.filter(
+    (id): id is number => id !== undefined && id > 0,
+  );
 
   const idsToInspect = typeIds.slice(0, maxTaskTypes);
   let taskTypesWithCustomFields = 0;
@@ -90,6 +105,7 @@ export async function discoverTaskTypeSchemas(
     taskTypesInspected: idsToInspect.length,
     allTaskTypesInspected: typeIds.length <= maxTaskTypes,
     taskTypesWithCustomFields,
+    zeroIdSentinelPresent,
     customFieldDefinitionKeys: [...definitionKeys].sort(),
   };
 }
