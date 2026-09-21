@@ -199,3 +199,19 @@ This is an **existence proof**, not an exhaustive integrity audit. It establishe
 using verified identifiers and documented read endpoints.
 
 The successful run used 37 API calls: 29 GET and 8 POST Search calls.
+
+
+## Task Type zero-ID sentinel — 2026-09-21
+
+Live Task Type discovery showed two ID classes:
+
+- positive integer Task Type IDs
+- a zero ID row with the same Task Type row shape
+
+A direct read of:
+
+`GET /v1/Tasks/types/0/custom-fields`
+
+returned HTTP 404, while `GET /v1/Tasks/types` returned HTTP 200.
+
+Stage 0E therefore treats Task Type ID `0` as a non-addressable sentinel for type-specific custom-field enumeration. It is preserved as schema evidence but excluded from calls to `/v1/Tasks/types/{id}/custom-fields`.
