@@ -17,6 +17,7 @@ const PROBES: readonly MetadataProbe[] = [
   { name: "itemCustomFields", path: "/v1/items/0/custom-fields" },
   { name: "customerAssetTypes", path: "/v1/customer-assets/types" },
   { name: "activeEmployees", path: "/v1/employees" },
+  { name: "taskTypes", path: "/v1/Tasks/types" },
 ];
 
 async function main(): Promise<void> {
