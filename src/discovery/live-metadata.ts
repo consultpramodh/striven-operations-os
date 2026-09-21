@@ -18,7 +18,6 @@ const PROBES: readonly MetadataProbe[] = [
   { name: "customerAssetTypes", path: "/v1/customer-assets/types" },
   { name: "activeEmployees", path: "/v1/employees" },
   { name: "taskTypes", path: "/v1/Tasks/types" },
-  { name: "taskTypeZeroCustomFields", path: "/v1/Tasks/types/0/custom-fields" },
 ];
 
 async function main(): Promise<void> {
@@ -118,6 +117,7 @@ async function main(): Promise<void> {
           taskSchema.taskTypesWithCustomFields > 0,
         customFieldDefinitionsExposeKeys:
           taskSchema.customFieldDefinitionKeys.length > 0,
+        zeroIdSentinelObserved: taskSchema.zeroIdSentinelPresent,
       }),
     );
 
