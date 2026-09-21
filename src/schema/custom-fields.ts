@@ -30,9 +30,9 @@ export interface CustomFieldProvider {
   discover(entity: string, entityTypeId?: string | number): Promise<CustomFieldDefinition[]>;
 }
 
-// Stage 0 will implement providers in this order:
-// 1. Native metadata API, if Striven exposes sufficient definitions.
-// 2. Entity payload discovery.
-// 3. Explicit mapping fallback.
+// Current provider order:
+// 1. Native metadata endpoints where Striven exposes field definitions.
+// 2. Entity payload discovery for gaps or additional scope evidence.
+// 3. Explicit mapping fallback only when the API cannot expose the definition.
 //
-// We do not invent an endpoint for provider #1 until it is verified.
+// Never replace a stable field ID based on a fuzzy name match.
