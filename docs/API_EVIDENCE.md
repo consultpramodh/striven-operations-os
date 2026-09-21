@@ -172,3 +172,30 @@ A second public OpenAPI inspection confirmed:
 Stage 0D therefore proves **relationship existence** by finding at least one exact Task Detail Sales Order ID that belongs to the selected customer's Sales Order set. This is distinct from an exhaustive audit of every Task for that customer.
 
 The verifier stops after an exact relationship is proven to conserve API budget. If no exact match is found before the bounded Task-detail cap, the result remains `INCONCLUSIVE`.
+
+
+## Live relationship proof — 2026-09-21
+
+GitHub Actions workflow run:
+`35653826114`, attempt 3.
+
+Result:
+
+- authentication: PASS
+- Customer graph: PASS
+- Customer has Sales Orders: PASS
+- returned Sales Orders belong to selected Customer: PASS
+- Task Detail exposed a Sales Order relationship: PASS
+- exact Task Sales Order reference matched the selected Customer's Sales Order set: PASS
+- no foreign Sales Order reference was observed before proof: PASS
+- exhaustive audit of every Task: NOT PERFORMED
+- writes enabled: false
+- HTTP results: all observed API calls returned 200
+
+This is an **existence proof**, not an exhaustive integrity audit. It establishes that the Operations OS can resolve at least one exact live path:
+
+`Customer → Sales Order → Task`
+
+using verified identifiers and documented read endpoints.
+
+The successful run used 37 API calls: 29 GET and 8 POST Search calls.
