@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "policy": "Repo-native skills are independently adapted for Striven Operations OS. Upstreams are references unless a future entry explicitly records copied material and its license obligations.",
+  "upstreams": [
+    {
+      "repo": "openclaw/agent-skills",
+      "license": "MIT",
+      "uses": [
+        "behavior validation",
+        "handoff",
+        "independent review"
+      ],
+      "status": "reference-and-adapt"
+    },
+    {
+      "repo": "idaibin/skills",
+      "license": "Apache-2.0",
+      "uses": [
+        "domain modeling",
+        "API specification",
+        "TypeScript/review boundaries"
+      ],
+      "status": "reference-and-adapt"
+    },
+    {
+      "repo": "obra/superpowers",
+      "license": "MIT",
+      "uses": [
+        "debugging",
+        "TDD",
+        "planning"
+      ],
+      "status": "tracked-reference"
+    },
+    {
+      "repo": "upstash/context7",
+      "license": "MIT",
+      "uses": [
+        "current documentation retrieval"
+      ],
+      "status": "tracked-tool"
+    },
+    {
+      "repo": "anthropics/skills",
+      "license": "verify-per-adoption",
+      "uses": [
+        "skill authoring",
+        "webapp testing",
+        "MCP patterns"
+      ],
+      "status": "reference-only"
+    },
+    {
+      "repo": "coreyhaines31/marketingskills",
+      "license": "MIT",
+      "uses": [
+        "future customer research",
+        "positioning",
+        "pricing experiments",
+        "outreach"
+      ],
+      "status": "future-optional"
+    },
+    {
+      "repo": "charlie947/social-media-skills",
+      "license": "MIT",
+      "uses": [
+        "future founder distribution"
+      ],
+      "status": "future-optional"
+    },
+    {
+      "repo": "Jakubantalik/transitions.dev",
+      "license": "verify-before-copy",
+      "uses": [
+        "future UI motion"
+      ],
+      "status": "future-reference"
+    }
+  ]
+}
