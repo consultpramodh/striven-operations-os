@@ -7,7 +7,7 @@ import { validateStage0Manifest } from "../src/discovery/validate-manifest.js";
 
 function validManifest(): Stage0Manifest {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     generatedAt: "2026-09-21T00:00:00.000Z",
     mode: "discovery",
     connection: { baseUrl: "https://api.striven.com" },
@@ -18,6 +18,8 @@ function validManifest(): Stage0Manifest {
       authentication: { state: "pass" },
       taskSearch: { state: "skipped" },
       customerGraph: { state: "skipped" },
+      salesOrderRelationship: { state: "skipped" },
+      customFields: { state: "skipped" },
     },
     apiUsage: {
       totalCalls: 2,
@@ -43,10 +45,10 @@ test("manifest rejects a pending capability that is accidentally enabled", () =>
   manifest.capabilities = [
     ...manifest.capabilities,
     {
-      entity: "Sales Orders",
+      entity: "Unknown Entity",
       operation: "Guessed search",
       method: "POST",
-      pathTemplate: "/v1/Orders/Search",
+      pathTemplate: "/v1/unknown/search",
       stage0Allowed: true,
       status: "pending-verification",
       evidence: "Not verified",
