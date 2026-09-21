@@ -1,7 +1,7 @@
 import { StrivenReadOnlyClient } from "../striven/client.js";
 import { summarizePayloadShape, type PayloadShape } from "./task-search.js";
 
-type SearchClient = Pick<StrivenReadOnlyClient, "search">;
+type RelationshipClient = Pick<StrivenReadOnlyClient, "search" | "get">;
 
 function rows(payload: unknown): Array<Record<string, unknown>> {
   if (Array.isArray(payload)) {
@@ -69,13 +69,32 @@ function rowId(row: Record<string, unknown>): number | undefined {
   return scalarId(row.Id ?? row.ID ?? row.id);
 }
 
+function orderIdFromRecord(record: Record<string, unknown>): number | undefined {
+  const direct = scalarId(
+    record.OrderId ??
+      record.OrderID ??
+      record.orderId ??
+      record.SalesOrderId ??
+      record.SalesOrderID ??
+      record.salesOrderId,
+  );
+  if (direct !== undefined) return direct;
+
+  return nestedId(
+    record.SalesOrder ??
+      record.salesOrder ??
+      record.Order ??
+      record.order,
+  );
+}
+
 interface PagedSearchResult {
   firstPayload: unknown;
   allRows: Array<Record<string, unknown>>;
 }
 
 async function searchAll(
-  client: SearchClient,
+  client: RelationshipClient,
   path: string,
   baseBody: Record<string, unknown>,
   pageSize: number,
@@ -120,6 +139,8 @@ export interface SalesOrderRelationshipShape {
     salesOrdersReturned: number;
     salesOrderRowsWithExpectedCustomer: number;
     tasksReturned: number;
+    taskDetailsInspected: number;
+    taskDetailsTruncated: boolean;
     tasksWithSalesOrderReference: number;
     taskSalesOrderReferencesFoundInCustomerOrders: number;
     taskSalesOrderReferencesOutsideCustomerOrders: number;
@@ -127,10 +148,15 @@ export interface SalesOrderRelationshipShape {
 }
 
 export async function probeSalesOrderRelationship(
-  client: SearchClient,
+  client: RelationshipClient,
   customerId: number,
   pageSize: number,
+  maxTaskDetails = 25,
 ): Promise<SalesOrderRelationshipShape> {
+  if (!Number.isInteger(maxTaskDetails) || maxTaskDetails <= 0) {
+    throw new Error("maxTaskDetails must be a positive integer");
+  }
+
   const salesOrders = await searchAll(
     client,
     "/v1/sales-orders/search",
@@ -168,21 +194,28 @@ export async function probeSalesOrderRelationship(
     return directCustomerId === customerId || nestedCustomerId === customerId;
   }).length;
 
-  const taskOrderIds = taskRows
-    .map((row) => {
-      const direct = scalarId(
-        row.OrderId ??
-          row.OrderID ??
-          row.orderId ??
-          row.SalesOrderId ??
-          row.SalesOrderID ??
-          row.salesOrderId,
-      );
-      if (direct !== undefined) return direct;
-      return nestedId(row.SalesOrder ?? row.salesOrder ?? row.Order ?? row.order);
-    })
+  const taskIds = taskRows
+    .map(rowId)
     .filter((id): id is number => id !== undefined);
 
+  const directSearchOrderIds = taskRows
+    .map(orderIdFromRecord)
+    .filter((id): id is number => id !== undefined);
+
+  const detailOrderIds: number[] = [];
+  const detailTaskIds = taskIds.slice(0, maxTaskDetails);
+
+  for (const taskId of detailTaskIds) {
+    const detail = await client.get<unknown>(`/v1/Tasks/${taskId}`);
+    if (!detail || typeof detail !== "object" || Array.isArray(detail)) continue;
+
+    const orderId = orderIdFromRecord(detail as Record<string, unknown>);
+    if (orderId !== undefined) {
+      detailOrderIds.push(orderId);
+    }
+  }
+
+  const taskOrderIds = [...new Set([...directSearchOrderIds, ...detailOrderIds])];
   const matching = taskOrderIds.filter((id) => salesOrderIds.has(id)).length;
 
   return {
@@ -192,6 +225,8 @@ export async function probeSalesOrderRelationship(
       salesOrdersReturned: salesOrderRows.length,
       salesOrderRowsWithExpectedCustomer,
       tasksReturned: taskRows.length,
+      taskDetailsInspected: detailTaskIds.length,
+      taskDetailsTruncated: taskIds.length > maxTaskDetails,
       tasksWithSalesOrderReference: taskOrderIds.length,
       taskSalesOrderReferencesFoundInCustomerOrders: matching,
       taskSalesOrderReferencesOutsideCustomerOrders: taskOrderIds.length - matching,
