@@ -2,6 +2,7 @@ import { loadConfig } from "../config/env.js";
 import { StrivenTokenManager } from "../striven/auth.js";
 import { StrivenReadOnlyClient } from "../striven/client.js";
 import { ApiMeter } from "../striven/metrics.js";
+import { discoverTaskTypeSchemas } from "./task-schema.js";
 import { summarizePayloadShape } from "./task-search.js";
 
 interface MetadataProbe {
@@ -58,6 +59,33 @@ async function main(): Promise<void> {
         }),
       );
     }
+  }
+
+  try {
+    const taskSchema = await discoverTaskTypeSchemas(client, 30);
+    console.log(
+      JSON.stringify({
+        probe: "taskTypeSchemas",
+        status: taskSchema.allTaskTypesInspected ? "PASS" : "INCONCLUSIVE",
+        taskTypesPresent: taskSchema.taskTypesDiscovered > 0,
+        everyTaskTypeInspected: taskSchema.allTaskTypesInspected,
+        atLeastOneTaskTypeHasCustomFields:
+          taskSchema.taskTypesWithCustomFields > 0,
+        customFieldDefinitionsExposeKeys:
+          taskSchema.customFieldDefinitionKeys.length > 0,
+      }),
+    );
+
+    if (!taskSchema.allTaskTypesInspected) failures += 1;
+  } catch (error) {
+    failures += 1;
+    console.log(
+      JSON.stringify({
+        probe: "taskTypeSchemas",
+        status: "FAIL",
+        error: error instanceof Error ? error.message : String(error),
+      }),
+    );
   }
 
   console.log(JSON.stringify({ apiUsage: meter.summary(), writesEnabled: false }));
