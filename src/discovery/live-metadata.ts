@@ -38,13 +38,13 @@ async function main(): Promise<void> {
       const payload = await client.get<unknown>(probe.path);
       const shape = summarizePayloadShape(payload);
       const rootArray = shape.arrayFields.find((field) => field.field === "$root");
+
       console.log(
         JSON.stringify({
           probe: probe.name,
           status: "PASS",
           kind: shape.kind,
           topLevelKeys: shape.topLevelKeys,
-          rootArrayLength: rootArray?.length ?? null,
           firstItemKeys: rootArray?.firstItemKeys ?? [],
         }),
       );
