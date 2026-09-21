@@ -56,7 +56,7 @@ function normalize(
 }
 
 export async function discoverEntityCustomFields(
-  client: StrivenReadOnlyClient,
+  client: Pick<StrivenReadOnlyClient, "get">,
   entity: DiscoverableCustomFieldEntity,
 ): Promise<CustomFieldDefinition[]> {
   const payload = await client.get<unknown>(ENTITY_ENDPOINTS[entity]);
@@ -75,7 +75,7 @@ export async function discoverEntityCustomFields(
 }
 
 export async function discoverGlobalCustomFields(
-  client: StrivenReadOnlyClient,
+  client: Pick<StrivenReadOnlyClient, "get">,
 ): Promise<Record<DiscoverableCustomFieldEntity, CustomFieldDefinition[]>> {
   const entries = await Promise.all(
     (Object.keys(ENTITY_ENDPOINTS) as DiscoverableCustomFieldEntity[]).map(
