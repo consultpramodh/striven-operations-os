@@ -25,5 +25,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Validate agent skills
+        run: npm run validate:skills
+
       - name: Typecheck
         run: npm run typecheck
