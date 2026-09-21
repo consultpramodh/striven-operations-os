@@ -1,0 +1,24 @@
+{
+  "name": "striven-operations-os",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.6"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "discovery": "node --env-file=.env.local --import tsx src/discovery/run.ts",
+    "validate:skills": "node scripts/validate-skills.mjs",
+    "verify:static": "npm run validate:skills && npm run typecheck && npm test",
+    "verify:stage0": "npm run verify:static && npm run discovery",
+    "live:metadata": "node --import tsx src/discovery/live-metadata.ts",
+    "live:relationship": "node --import tsx src/discovery/live-relationship.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

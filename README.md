@@ -12,7 +12,7 @@ The first milestone is a read-only Tenant Discovery Engine that:
 - discovers custom-field metadata where the API exposes it
 - versions the live tenant schema
 - produces a Tenant Manifest and readiness report
-- performs **no POST/PATCH business-record writes**
+- performs **no business-record create/update/delete writes**
 
 ## Phase-1 entities
 
@@ -39,6 +39,8 @@ The first milestone is a read-only Tenant Discovery Engine that:
 
 ## Current milestone
 
-**Stage 0A:** authentication, request wrapper, API metering, and read-only capability discovery.
+**Stage 0B:** verify read contracts and relationship evidence using a known customer/account record. In Striven Task Search, the field name `AccountID` refers to the customer/account record used by the query; this repo does not treat it as a tenant identifier.
 
-See `docs/V1_SCOPE.md` and `docs/ARCHITECTURE.md`.
+Current verified surfaces include the officially documented `POST /v1/Tasks/Search` plus read-only Customer/Contact/Assignment endpoints previously exercised in the earlier live prototype. Remaining Phase-1 routes stay blocked until independently verified.
+
+See `docs/V1_SCOPE.md`, `docs/ARCHITECTURE.md`, and `docs/API_EVIDENCE.md`.
