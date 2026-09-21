@@ -1,0 +1,44 @@
+name: Inspect Striven Task OpenAPI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/inspect-striven-openapi.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect public Task paths and schema fields
+        shell: python
+        run: |
+          import json
+          import urllib.request
+
+          url = "https://api.striven.com/swagger/v1/swagger.json"
+          with urllib.request.urlopen(url, timeout=30) as response:
+              spec = json.load(response)
+
+          print("TASK_PATHS")
+          for path, methods in sorted(spec.get("paths", {}).items()):
+              if "task" in path.lower():
+                  print(path, ",".join(sorted(methods.keys())))
+
+          print("TASK_SCHEMAS")
+          schemas = spec.get("components", {}).get("schemas", {})
+          for name, schema in sorted(schemas.items()):
+              if "task" not in name.lower():
+                  continue
+              props = schema.get("properties", {})
+              interesting = [
+                  key for key in props
+                  if any(token in key.lower() for token in [
+                      "order", "sales", "account", "customer", "task", "id", "custom"
+                  ])
+              ]
+              print(name + ": " + ",".join(sorted(interesting)))
