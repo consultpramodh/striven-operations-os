@@ -1,5 +1,6 @@
 import type { ApiCapability } from "./capabilities.js";
 import type { CustomerGraphShape } from "./customer-graph.js";
+import type { SalesOrderRelationshipShape } from "./sales-orders.js";
 import type { DocumentedStaticLists } from "./static-lists.js";
 import type { PayloadShape } from "./task-search.js";
 
@@ -11,8 +12,15 @@ export interface DiscoveryProbeResult<T = unknown> {
   data?: T;
 }
 
+export interface CustomFieldDiscoverySummary {
+  customers: number;
+  salesOrders: number;
+  customerAssets: number;
+  items: number;
+}
+
 export interface Stage0Manifest {
-  schemaVersion: 2;
+  schemaVersion: 3;
   generatedAt: string;
   mode: "discovery";
   connection: {
@@ -27,6 +35,8 @@ export interface Stage0Manifest {
     authentication: DiscoveryProbeResult;
     taskSearch: DiscoveryProbeResult<PayloadShape>;
     customerGraph: DiscoveryProbeResult<CustomerGraphShape>;
+    salesOrderRelationship: DiscoveryProbeResult<SalesOrderRelationshipShape>;
+    customFields: DiscoveryProbeResult<CustomFieldDiscoverySummary>;
   };
   apiUsage: {
     totalCalls: number;
