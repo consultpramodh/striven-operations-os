@@ -1,11 +1,6 @@
 name: Live Striven Metadata Verification
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - ".github/workflows/live-striven-metadata.yml"
   workflow_dispatch:
 
 permissions:
