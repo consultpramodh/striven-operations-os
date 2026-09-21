@@ -2,7 +2,7 @@ export interface AppConfig {
   strivenClientId: string;
   strivenClientSecret: string;
   strivenBaseUrl: string;
-  accountId: number | undefined;
+  probeCustomerId: number | undefined;
   stage0PageSize: number;
 }
 
@@ -24,14 +24,17 @@ function positiveInteger(name: string, value: string | undefined, fallback?: num
 }
 
 export function loadConfig(): AppConfig {
-  const accountId = positiveInteger("STRIVEN_ACCOUNT_ID", process.env.STRIVEN_ACCOUNT_ID);
+  const probeCustomerId = positiveInteger(
+    "STRIVEN_PROBE_CUSTOMER_ID",
+    process.env.STRIVEN_PROBE_CUSTOMER_ID,
+  );
   const stage0PageSize = positiveInteger("STAGE0_PAGE_SIZE", process.env.STAGE0_PAGE_SIZE, 1);
 
   return {
     strivenClientId: required("STRIVEN_CLIENT_ID"),
     strivenClientSecret: required("STRIVEN_CLIENT_SECRET"),
     strivenBaseUrl: process.env.STRIVEN_BASE_URL?.trim() || "https://api.striven.com",
-    accountId,
+    probeCustomerId,
     stage0PageSize: stage0PageSize ?? 1,
   };
 }
