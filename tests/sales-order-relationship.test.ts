@@ -42,6 +42,7 @@ test("Sales Order relationship probe compares customer orders to Task order refe
     tasksReturned: 3,
     taskDetailsInspected: 3,
     taskDetailsTruncated: false,
+    stoppedAfterExactMatch: false,
     tasksWithSalesOrderReference: 2,
     taskSalesOrderReferencesFoundInCustomerOrders: 1,
     taskSalesOrderReferencesOutsideCustomerOrders: 1,
@@ -67,6 +68,7 @@ test("Sales Order relationship probe supports lowercase response envelopes", asy
   assert.equal(result.evidence.salesOrderRowsWithExpectedCustomer, 1);
   assert.equal(result.evidence.taskSalesOrderReferencesFoundInCustomerOrders, 1);
   assert.equal(result.evidence.taskDetailsInspected, 1);
+  assert.equal(result.evidence.stoppedAfterExactMatch, false);
 });
 
 test("Sales Order relationship probe includes later pages before resolving Task references", async () => {
@@ -154,6 +156,8 @@ test("Task detail resolves Sales Order when Task Search intentionally omits it",
   assert.equal(result.evidence.tasksWithSalesOrderReference, 1);
   assert.equal(result.evidence.taskSalesOrderReferencesFoundInCustomerOrders, 1);
   assert.equal(result.evidence.taskSalesOrderReferencesOutsideCustomerOrders, 0);
+  assert.equal(result.evidence.stoppedAfterExactMatch, true);
+  assert.equal(result.evidence.taskDetailsInspected, 1);
 });
 
 test("Task detail inspection fails closed when the safety cap truncates tasks", async () => {
@@ -176,7 +180,6 @@ test("Task detail inspection fails closed when the safety cap truncates tasks", 
       const taskId = Number(path.split("/").at(-1));
       return {
         id: taskId,
-        salesOrder: { id: 901 },
       } as T;
     },
   };
@@ -184,4 +187,5 @@ test("Task detail inspection fails closed when the safety cap truncates tasks", 
   const result = await probeSalesOrderRelationship(client, 66, 10, 2);
   assert.equal(result.evidence.taskDetailsInspected, 2);
   assert.equal(result.evidence.taskDetailsTruncated, true);
+  assert.equal(result.evidence.stoppedAfterExactMatch, false);
 });
