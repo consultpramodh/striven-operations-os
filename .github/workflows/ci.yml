@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  typecheck:
+  verify:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -30,3 +30,6 @@ jobs:
 
       - name: Typecheck
         run: npm run typecheck
+
+      - name: Unit and invariant tests
+        run: npm test
