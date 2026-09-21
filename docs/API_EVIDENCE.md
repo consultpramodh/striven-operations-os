@@ -1,95 +1,117 @@
 # API Evidence Register
 
-The capability registry distinguishes current official documentation from previously exercised live behavior. A prior successful prototype is useful evidence, but it does not automatically promote every adjacent or similarly named endpoint.
+The capability registry distinguishes documented API contracts, prior live evidence, and current-tenant proof. Documentation does not by itself prove that the connected tenant has permission or compatible data for an operation.
 
 ## Current official evidence
 
 Checked 2026-09-21.
 
-### Authentication
+### Authentication and Task Search
 
 Source: https://api.striven.com/help
 
-Verified documentation:
+Verified documentation includes:
+
 - OAuth access token from `/accesstoken`
-- bearer authorization for API requests
+- bearer authorization
 - access-token reuse
 - refresh-token flow
-- documented token lifetime behavior
-
-### Task Search
-
-Source: https://api.striven.com/help
-
-Verified documentation:
 - `POST /v1/Tasks/Search`
-- request example includes `AccountID`, `PageIndex`, `PageSize`, `SortExpression`, and `SortOrder`
+- Task Search request fields including `AccountID`, pagination, and sorting
 
 Important semantic note:
-- the field name `AccountID` is retained because that is Striven's API contract;
-- the Operations OS does **not** interpret it as a tenant ID;
-- our live-probe configuration calls the corresponding value `probeCustomerId`.
+
+- Striven's Task Search contract calls the customer/account record filter `AccountID`;
+- the Operations OS does **not** use that field as tenant identity;
+- repo configuration calls the selected record `probeCustomerId`.
 
 ### Static Lists
 
 Source: https://api.striven.com/Help/StaticLists
 
-Currently captured:
+Captured reference lists include:
+
 - Customer/Vendor Status
 - Customer Asset Status
 - Order Status
 - Task Status
 
-These are documented static reference values, not tenant-specific custom-field metadata.
-
 ### Rate Limits
 
 Source: https://api.striven.com/Help/RateLimits
 
-Current documented limits:
+Captured policy:
+
 - Standard: 100 requests/minute and 5,000/day
-- Enterprise: 500 requests/minute and 25,000/day
+- Enterprise: 500/minute and 25,000/day
 - allocation is per tenant
-- 429 includes Retry-After
+- 429 includes `Retry-After`
 - daily usage resets at midnight UTC
+
+## Current API contract registry
+
+The Stage 0 capability registry now contains read/search contracts for:
+
+- Customers
+- Contacts
+- Customer locations
+- Sales Orders
+- Tasks
+- Customer Assets and Asset Types
+- Employees
+- Items
+- entity custom-field definition reads where supported
+
+The registry is intentionally separate from live-tenant proof. A route can be documented yet still fail because of tenant permissions, configuration, or contract differences.
 
 ## Previously exercised live read evidence
 
 Source repository:
+
 `consultpramodh/striven-flow`
 
 Evidence commit:
+
 `5d3252b35c463eb54fe4fe80315771eec5983abe`
-("Add consolidated read-only customer graph probe")
 
-Read-only routes exercised by that prototype:
-- `GET /v1/customers/{customerId}`
-- `GET /v1/contacts/{contactId}`
-- `GET /v1/customers/{customerId}/assignments`
-- `POST /v1/Tasks/Search` with the selected customer's/account's ID in `AccountID`
+Previously exercised read-only routes include:
 
-Stage 0B may probe these surfaces against the current tenant because they have prior live evidence. They remain separately labeled from official-documentation verification.
+- Customer by ID
+- Contact by ID
+- Customer assignments
+- Task Search using the selected customer/account record ID
 
-## Still blocked / not verified
+## Stage 0C live proof required
 
-Do not guess routes for:
-- Sales Order discovery/search
-- Customer Asset discovery/search
-- Employee discovery/search
-- Location discovery/search
-- Item discovery/search
-- custom-field definition enumeration
+The next proof layers are:
 
-Each remains blocked until its exact current read contract is verified from official documentation or an isolated live read probe with a justified candidate endpoint.
+### Metadata-only
 
-## Evidence promotion rule
+Verify against the connected tenant:
 
-A capability may move to a stronger evidence class only after the exact operation has been observed.
+- Customer custom-field definitions
+- Sales Order custom-field definitions
+- Customer Asset custom-field definitions
+- Item custom-field definitions
+- Customer Asset types
+- active Employees
 
-Possible classes:
+### Relationship proof
+
+Using a known customer/account record:
+
+- Customer → Contact
+- Customer → Task
+- Customer → Sales Order
+- Task → Sales Order when Task exposes an order reference
+
+The relationship probe stores counts and boolean/structural evidence, not customer names, order values, addresses, or notes.
+
+## Evidence classes
+
 1. `pending-verification`
 2. `verified-existing-live-project`
 3. `verified-current-live-tenant`
 4. `verified-official-docs`
 
-Official documentation and live-tenant proof may coexist; one does not erase the other.
+Documentation and live proof are orthogonal evidence. Production authorization requires the appropriate combination of contract evidence, current-tenant evidence, tests, and write-safety approval.
