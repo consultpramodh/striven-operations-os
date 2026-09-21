@@ -45,7 +45,7 @@ export class StrivenReadOnlyClient {
         Authorization: `Bearer ${token}`,
         ...(options.body === undefined ? {} : { "Content-Type": "application/json" }),
       },
-      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+      body: options.body === undefined ? null : JSON.stringify(options.body),
     });
 
     const retryAfterRaw = response.headers.get("retry-after");
@@ -58,7 +58,7 @@ export class StrivenReadOnlyClient {
       status: response.status,
       durationMs: Date.now() - startedAt,
       attempt,
-      ...(Number.isFinite(retryAfterSeconds) ? { retryAfterSeconds } : {}),
+      retryAfterSeconds,
     });
 
     if (response.status === 401 && attempt === 1) {
