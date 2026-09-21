@@ -139,3 +139,21 @@ The following exact operations were observed successfully against the connected 
 - `GET /v1/employees`
 
 This proves endpoint availability and permission for these specific operations in the current tenant. It does not yet prove Customer → Sales Order → Task record relationships or any write behavior.
+
+
+## Task detail contract verification — 2026-09-21
+
+Public Striven OpenAPI inspection confirmed:
+
+- `POST /v1/Tasks/Search`
+- `GET /v1/Tasks/{TaskID}`
+- `GET /v1/Tasks/types`
+- `GET /v1/Tasks/types/{id}/custom-fields`
+
+Relevant schema evidence:
+
+- `TaskSearchResult` exposes account/task identity and status fields but does not expose a Sales Order relationship.
+- `Task` includes `OrderId`.
+- `TaskDetail` includes `SalesOrder`.
+
+Therefore a missing Sales Order reference in Task Search is not treated as a broken relationship. Stage 0D resolves searched Task IDs through the documented Task-detail endpoint before evaluating Customer → Sales Order → Task.
