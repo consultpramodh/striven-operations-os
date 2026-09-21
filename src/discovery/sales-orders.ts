@@ -99,7 +99,7 @@ export async function probeSalesOrderRelationship(
   const taskOrderIds = taskRows
     .map((row) => {
       const direct =
-        scalarId(row.OrderId ?? row.OrderID ?? row.SalesOrderId ?? row.SalesOrderID);
+        scalarId(\n          row.OrderId ??\n            row.OrderID ??\n            row.orderId ??\n            row.SalesOrderId ??\n            row.SalesOrderID ??\n            row.salesOrderId,\n        );
       if (direct !== undefined) return direct;
       return nestedId(row.SalesOrder ?? row.salesOrder ?? row.Order ?? row.order);
     })
