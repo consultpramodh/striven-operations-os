@@ -33,21 +33,22 @@ async function api(method, path, body) {
   return text ? JSON.parse(text) : null;
 }
 
-const pick = (t) => ({
-  Id: t.Id, Title: t.Title, Type: t.Type, Status: t.Status, Priority: t.Priority,
-  Customer: t.Customer, Location: t.Location, StartDateTime: t.StartDateTime,
-  DueDateTime: t.DueDateTime, SalesOrder: t.SalesOrder, RequestedBy: t.RequestedBy,
-  Assignments: t.Assignments, CreatedBy: t.CreatedBy, Description: (t.Description || "").slice(0, 300),
-});
+const pick = (t) => {
+  const o = { ...t };
+  for (const k of Object.keys(o)) if (/description/i.test(k) && typeof o[k] === "string") o[k] = o[k].slice(0, 300);
+  return o;
+};
 
 async function main() {
   T = await token();
   const cust = await api("GET", `/v1/customers/${CUSTOMER_ID}`);
-  console.log("CUSTOMER", JSON.stringify({ Id: cust.Id, Number: cust.Number, Name: cust.Name, Phones: cust.Phones, PrimaryAddress: cust.PrimaryAddress }, null, 1));
+  console.log("CUSTOMER", JSON.stringify(pick(cust), null, 1).slice(0, 3000));
   const locs = await api("GET", `/v1/customers/${CUSTOMER_ID}/locations`);
   console.log("LOCATIONS", JSON.stringify(locs, null, 1).slice(0, 3000));
   const existing = await api("POST", "/v2/tasks/search", { PageIndex: 0, PageSize: 50, Customer: { Id: CUSTOMER_ID } });
   console.log("EXISTING_TASKS", JSON.stringify(existing, null, 1).slice(0, 4000));
+  const control = await api("POST", "/v2/tasks/search", { PageIndex: 0, PageSize: 10, Customer: { Id: 63368 } });
+  console.log("CONTROL_SEARCH_63368", JSON.stringify(control, null, 1).slice(0, 2000));
   for (const id of TEMPLATE_TASK_IDS) {
     console.log("TEMPLATE", JSON.stringify(pick(await api("GET", `/v2/tasks/${id}`)), null, 1));
   }
@@ -55,10 +56,12 @@ async function main() {
 
   const spec = JSON.parse(process.env.CREATE_SPEC_JSON);
   const rows = existing?.Data ?? existing?.data ?? [];
-  const dup = rows.find((t) => t.Type?.Id === spec.Type?.Id);
+  const typeId = (t) => (t.Type ?? t.type)?.Id ?? (t.Type ?? t.type)?.id;
+  const dup = rows.find((t) => typeId(t) === spec.Type?.Id);
   if (dup) { console.log("ALREADY_EXISTS", JSON.stringify(dup)); return; }
   const created = await api("POST", "/v2/tasks", spec);
-  console.log("CREATED_TASK_ID", created.Id);
-  console.log("VERIFY", JSON.stringify(pick(await api("GET", `/v2/tasks/${created.Id}`)), null, 1));
+  const newId = created.Id ?? created.id;
+  console.log("CREATED_TASK_ID", newId);
+  console.log("VERIFY", JSON.stringify(pick(await api("GET", `/v2/tasks/${newId}`)), null, 1));
 }
 main().catch((e) => { console.error(e.message); process.exit(1); });
