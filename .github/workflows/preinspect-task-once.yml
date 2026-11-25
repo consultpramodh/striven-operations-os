@@ -1,0 +1,29 @@
+name: One-time pre-inspection task (63351)
+
+on:
+  push:
+    branches: [claude/todays-preinspections-ihzvr6]
+    paths: [ops/preinspect-task.mjs, ops/create-spec.json, .github/workflows/preinspect-task-once.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    env:
+      STRIVEN_CLIENT_ID: ${{ secrets.CLIENT_ID }}
+      STRIVEN_CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run
+        shell: bash
+        run: |
+          if [ -f ops/create-spec.json ]; then
+            export MODE=create
+            export CREATE_SPEC_JSON="$(cat ops/create-spec.json)"
+          fi
+          node ops/preinspect-task.mjs
